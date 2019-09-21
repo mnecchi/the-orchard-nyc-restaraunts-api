@@ -17,7 +17,8 @@ module.exports = {
     // queries the db
     queryRestaurants(req.query)
       .then(results => {
-        // returns a json payload
+		// returns a json payload
+		res.header("Access-Control-Allow-Origin", "*");
         res.type('json');
         res.send(JSON.stringify(results));
       })
