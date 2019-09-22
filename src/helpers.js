@@ -77,4 +77,22 @@ const queryRestaurants = async options => {
   }
 }
 
-module.exports = { queryRestaurants };
+const queryCuisines = async () => {
+  const connection = await getMysqlConnection();
+  try {
+    const results = await executeQuery(connection, 'SELECT DISTINCT cuisine FROM restaurant ORDER BY cuisine;');
+    connection.release();
+    return results;
+  } catch (err) {
+    connection.release();
+    throw new err;
+  }
+}
+
+const sendJson = (res, json) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.type('json');
+  res.send(JSON.stringify(json));
+}
+
+module.exports = { queryRestaurants, queryCuisines, sendJson };

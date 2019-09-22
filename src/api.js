@@ -1,4 +1,4 @@
-const { queryRestaurants } = require('./helpers');
+const { sendJson, queryRestaurants, queryCuisines } = require('./helpers');
 
 // API endpoints implementations
 
@@ -17,15 +17,29 @@ module.exports = {
     // queries the db
     queryRestaurants(req.query)
       .then(results => {
-		// returns a json payload
-		res.header("Access-Control-Allow-Origin", "*");
-        res.type('json');
-        res.send(JSON.stringify(results));
+        // returns a json payload
+        sendJson(res, results);
+      })
+      .catch(err => {
+        // returns a generic server error
+        res.status(500).send(err.message);
+      });
+  },
+
+  /*
+   * Method: GET
+   * Endpoint: /cuisines
+   *
+   * Returns the list of all cuisines in the db
+   */
+  getCuisines: (_, res) => {
+    queryCuisines()
+      .then(results => {
+        sendJson(res, results);
       })
       .catch(err => {
         // returns a generic server error
         res.status(500).send(err.message);
       });
   }
-
 };
