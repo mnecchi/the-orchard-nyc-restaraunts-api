@@ -1,4 +1,4 @@
-const { sendJson, queryRestaurants, queryCuisines } = require('./helpers');
+const { sendJson, queryRestaurants, queryRestaurant, queryCuisines } = require('./helpers');
 
 // API endpoints implementations
 
@@ -19,6 +19,29 @@ module.exports = {
       .then(results => {
         // returns a json payload
         sendJson(res, results);
+      })
+      .catch(err => {
+        // returns a generic server error
+        res.status(500).send(err.message);
+      });
+  },
+
+  /*
+   * Method: GET
+   * Endpoint: /restaurants/:id
+   *
+   * Returns a single restaurant's details
+   */
+  getRestaurant: (req, res) => {
+    queryRestaurant(req.params.id)
+      .then(results => {
+        if (!Array.isArray(results) || results.length === 0) {
+          // if no restaurant is found return 404
+          res.status(404).send('Not Found!');
+        } else {
+          // returns a json payload
+          sendJson(res, results[0]);
+        }
       })
       .catch(err => {
         // returns a generic server error

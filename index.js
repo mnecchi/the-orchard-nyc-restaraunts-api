@@ -6,5 +6,6 @@ const PORT = process.env.PORT || 5000;
 
 express()
   .get('/restaurants', api.getRestaurants)
+  .get('/restaurants/:id', api.getRestaurant)
   .get('/cuisines', api.getCuisines)
   .listen(PORT, () => console.log(`Listening on ${ PORT }`));
