@@ -227,11 +227,10 @@ describe('Test queryRestaurant', () => {
    * the connection is closed at the end
    */
   it('should retrieve the selected restaurant', async () => {
-    const expectedQuery = `SELECT restaurant.restaurant_id, restaurant.dba, restaurant.boro, restaurant.building, restaurant.street, restaurant.zipcode, restaurant.phone, restaurant.cuisine, restaurant.last_inspection_date, inspection.grade, inspection.violation_code, IFNULL(violation.violation_description, v.violation_description) AS violation_description FROM restaurant
+    const expectedQuery = `SELECT restaurant.restaurant_id, restaurant.dba, restaurant.boro, restaurant.building, restaurant.street, restaurant.zipcode, restaurant.phone, restaurant.cuisine, restaurant.last_inspection_date, inspection.grade, inspection.violation_code, violation.violation_description FROM restaurant
 INNER JOIN inspection ON restaurant.camis=inspection.camis AND restaurant.last_inspection_date=inspection.inspection_date
-LEFT JOIN violation ON violation.camis=restaurant.camis AND violation.violation_code=inspection.violation_code
-LEFT JOIN violation v ON v.violation_code=inspection.violation_code
-WHERE restaurant_id=${id} LIMIT 0,1`;
+LEFT JOIN violation ON violation.violation_code=inspection.violation_code
+WHERE restaurant_id=${id}`;
     const results = {
       restaurant_id: id,
       dba: "Indian Restaurant",
