@@ -256,3 +256,24 @@ WHERE restaurant_id=${id} LIMIT 0,1`;
     expect(mockConnection.query).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
   });
 });
+
+/**
+ * sendJson
+ */
+describe('Test sendJson', () => {
+  const res = {
+    header: jest.fn(),
+    type: jest.fn(),
+    send: jest.fn()
+  };
+
+  const json = {
+    test: true,
+    data: [{ one: 1, two: 2 }]
+  };
+
+  sendJson(res, json);
+  expect(res.header).toHaveBeenCalledWith('Access-Control-Allow-Origin', '*');
+  expect(res.type).toHaveBeenCalledWith('json');
+  expect(res.send).toHaveBeenCalledWith(JSON.stringify(json));
+});
