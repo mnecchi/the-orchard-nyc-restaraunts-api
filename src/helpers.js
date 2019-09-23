@@ -166,7 +166,7 @@ const queryCuisines = async () => {
   let connection;
   try {
     connection = await getMysqlConnection();
-    return await executeQuery(connection, 'SELECT DISTINCT cuisine FROM restaurant ORDER BY cuisine;');
+    return await executeQuery(connection, 'SELECT DISTINCT cuisine FROM restaurant ORDER BY cuisine');
   } catch (err) {
     throw err;
   } finally {

@@ -1,4 +1,4 @@
-const { queryRestaurants } = require('../helpers');
+const { queryRestaurants, queryCuisines } = require('../helpers');
 
 let mockGetConnectionError = undefined;
 let mockConnection = {
@@ -12,8 +12,6 @@ jest.mock('mysql', () => ({
   })
 }));
 
-let options = {};
-
 beforeEach(() => {
   jest.clearAllMocks();
 });
@@ -22,6 +20,8 @@ beforeEach(() => {
  * queryRestaurants
  */
 describe('Test queryRestaurants', () => {
+
+  let options = {};
 
   /**
    * The function must throw an error and close db connection
@@ -141,6 +141,52 @@ WHERE restaurant.dba LIKE '%Indian Restaurant%' AND restaurant.boro='Manhattan' 
     ]);
 
   });
+});
 
+/**
+ * queryCuisines
+ */
+describe('Test queryCuisines', () => {
 
+  /**
+  * The function must throw an error and close db connection
+  * if no mysql db connection
+  */
+  it('should throw an error if there is no connection to the db', async () => {
+   mockGetConnectionError = new Error('Connection Error');
+   await expect(queryCuisines()).rejects.toThrow(mockGetConnectionError.message);
+   mockGetConnectionError = undefined;
+  });
+
+ /**
+  * The function must throw an error and close db connection
+  * if the query fails
+  */
+  it('should throw an error if the query fails', async () => {
+    const queryError = new Error('Query Error');
+    mockConnection.query = jest.fn()
+      .mockImplementation((_, cb) => cb(queryError, []));
+
+    await expect(queryCuisines()).rejects.toThrow(queryError);
+    expect(mockConnection.release).toHaveBeenCalledTimes(1);
+  });
+
+ /**
+   * The function must resolve to the expected results
+   * Check if the mysql query is the expected one and
+   * the connection is closed at the end
+   */
+  it('should retrieve all the cuisines', async () => {
+
+    const expectedQuery = 'SELECT DISTINCT cuisine FROM restaurant ORDER BY cuisine';
+    const results = [{ cuisine: "Indian" }, { cuisines: 'Chinese'}, { cuisines: 'Italian'}];
+
+    mockConnection.query = jest.fn()
+      .mockImplementation((_, cb) => cb(undefined, results))
+
+    await expect(queryCuisines()).resolves.toEqual(results);
+
+    expect(mockConnection.release).toHaveBeenCalledTimes(1);
+    expect(mockConnection.query).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
+  });
 });
