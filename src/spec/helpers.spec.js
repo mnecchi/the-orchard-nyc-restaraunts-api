@@ -1,4 +1,4 @@
-const { queryRestaurants, queryCuisines } = require('../helpers');
+const { queryRestaurants, queryCuisines, queryRestaurant, sendJson } = require('../helpers');
 
 let mockGetConnectionError = undefined;
 let mockConnection = {
@@ -185,6 +185,72 @@ describe('Test queryCuisines', () => {
       .mockImplementation((_, cb) => cb(undefined, results))
 
     await expect(queryCuisines()).resolves.toEqual(results);
+
+    expect(mockConnection.release).toHaveBeenCalledTimes(1);
+    expect(mockConnection.query).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
+  });
+});
+
+/**
+ * queryRestaurant
+ */
+describe('Test queryRestaurant', () => {
+
+  const id = 10;
+
+  /**
+  * The function must throw an error and close db connection
+  * if no mysql db connection
+  */
+  it('should throw an error if there is no connection to the db', async () => {
+   mockGetConnectionError = new Error('Connection Error');
+   await expect(queryRestaurant(id)).rejects.toThrow(mockGetConnectionError.message);
+   mockGetConnectionError = undefined;
+  });
+
+ /**
+  * The function must throw an error and close db connection
+  * if the query fails
+  */
+  it('should throw an error if the query fails', async () => {
+    const queryError = new Error('Query Error');
+    mockConnection.query = jest.fn()
+      .mockImplementation((_, cb) => cb(queryError, []));
+
+    await expect(queryRestaurant(id)).rejects.toThrow(queryError);
+    expect(mockConnection.release).toHaveBeenCalledTimes(1);
+  });
+
+ /**
+   * The function must resolve to the expected results
+   * Check if the mysql query is the expected one and
+   * the connection is closed at the end
+   */
+  it('should retrieve the selected restaurant', async () => {
+    const expectedQuery = `SELECT restaurant.restaurant_id, restaurant.dba, restaurant.boro, restaurant.building, restaurant.street, restaurant.zipcode, restaurant.phone, restaurant.cuisine, restaurant.last_inspection_date, inspection.grade, inspection.violation_code, IFNULL(violation.violation_description, v.violation_description) AS violation_description FROM restaurant
+INNER JOIN inspection ON restaurant.camis=inspection.camis AND restaurant.last_inspection_date=inspection.inspection_date
+LEFT JOIN violation ON violation.camis=restaurant.camis AND violation.violation_code=inspection.violation_code
+LEFT JOIN violation v ON v.violation_code=inspection.violation_code
+WHERE restaurant_id=${id} LIMIT 0,1`;
+    const results = {
+      restaurant_id: id,
+      dba: "Indian Restaurant",
+      boro: "Manhattan",
+      building: "111",
+      street: "5 Avenue",
+      zipcode: "00000",
+      phone: "7890123456",
+      cuisine: "Indian",
+      last_inspection_date: "2019-01-01T12:00:00.000Z",
+      grade: "A",
+      violation_code: "04A",
+      violation_description: "Food Protection Certificate not held by supervisor of food operations."
+    };
+
+    mockConnection.query = jest.fn()
+      .mockImplementation((_, cb) => cb(undefined, results));
+
+    await expect(queryRestaurant(id)).resolves.toEqual(results);
 
     expect(mockConnection.release).toHaveBeenCalledTimes(1);
     expect(mockConnection.query).toHaveBeenCalledWith(expectedQuery, expect.any(Function));
