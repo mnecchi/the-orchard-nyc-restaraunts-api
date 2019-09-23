@@ -13,17 +13,14 @@ module.exports = {
    * - offset (optional, default: 0): the index of the first element in the list
    * - limit (optional, default: 999): max number of results
    */
-  getRestaurants: (req, res) => {
+  getRestaurants: async (req, res) => {
     // queries the db
-    queryRestaurants(req.query)
-      .then(results => {
-        // returns a json payload
-        sendJson(res, results);
-      })
-      .catch(err => {
-        // returns a generic server error
-        res.status(500).send(err.message);
-      });
+    try {
+      sendJson(res, await queryRestaurants(req.query));
+    } catch(err) {
+      // returns a generic server error
+      res.status(500).send(err.message);
+    };
   },
 
   /*
@@ -32,21 +29,20 @@ module.exports = {
    *
    * Returns a single restaurant's details
    */
-  getRestaurant: (req, res) => {
-    queryRestaurant(req.params.id)
-      .then(results => {
-        if (!Array.isArray(results) || results.length === 0) {
-          // if no restaurant is found return 404
-          res.status(404).send('Not Found!');
-        } else {
-          // returns a json payload
-          sendJson(res, results[0]);
-        }
-      })
-      .catch(err => {
-        // returns a generic server error
-        res.status(500).send(err.message);
-      });
+  getRestaurant: async (req, res) => {
+    try {
+      const results = await queryRestaurant(req.params.id);
+      if (!Array.isArray(results) || results.length === 0) {
+        // if no restaurant is found return 404
+        res.status(404).send('Not Found!');
+      } else {
+        // returns a json payload
+        sendJson(res, results[0]);
+      }
+    } catch (err)  {
+      // returns a generic server error
+      res.status(500).send(err.message);
+    };
   },
 
   /*
@@ -55,14 +51,12 @@ module.exports = {
    *
    * Returns the list of all cuisines in the db
    */
-  getCuisines: (_, res) => {
-    queryCuisines()
-      .then(results => {
-        sendJson(res, results);
-      })
-      .catch(err => {
-        // returns a generic server error
-        res.status(500).send(err.message);
-      });
+  getCuisines: async (_, res) => {
+    try {
+      sendJson(res, await queryCuisines());
+    } catch (err) {
+      // returns a generic server error
+      res.status(500).send(err.message);
+    };
   }
 };
